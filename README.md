@@ -26,7 +26,8 @@ QQ: 274792800
 通过内嵌的小工具可更好的服务您的跨境店铺，比如运费估算、一键翻译让您无足够的英文基础也能玩转跨境电商。
 
 演示截图:
-https://img.huzhan.com/file/u15748208244/code/157646580885/1578380991422.png
+![image](https://user-images.githubusercontent.com/3635407/123405564-88d34280-d5dc-11eb-8e4d-ade08f297b42.png)
+
 
 
 

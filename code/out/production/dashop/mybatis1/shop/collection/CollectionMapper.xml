@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CollectionMapper">
+
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_COLLECTION
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		GOODS_ID,	
+		USER_ID,	
+		ADD_TIME,	
+		MEMO,	
+		COLLECTION_ID
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{GOODS_ID},	
+		#{USER_ID},	
+		#{ADD_TIME},	
+		#{MEMO},	
+		#{COLLECTION_ID}
+	</sql>
+
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="COLLECTION_ID != null and COLLECTION_ID !=''">
+			and COLLECTION_ID = #{COLLECTION_ID}
+		</if>
+		<if test="USER_ID != null and USER_ID !=''">
+			and USER_ID = #{USER_ID}
+		</if>
+		<if test="GOODS_ID != null and GOODS_ID !=''">
+			and GOODS_ID = #{GOODS_ID}
+		</if>
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		GOODS_ID = #{GOODS_ID},
+		USER_ID = #{USER_ID},
+		ADD_TIME = #{ADD_TIME},
+		MEMO = #{MEMO},
+		COLLECTION_ID = COLLECTION_ID
+		where
+		COLLECTION_ID = #{COLLECTION_ID}
+	</update>
+
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1 = 1
+		<if test="USER_ID != null and USER_ID !='' and GOODS_ID != null and GOODS_ID !=''">
+			and USER_ID = #{USER_ID} and GOODS_ID = #{GOODS_ID}
+		</if>
+		<if test="COLLECTION_ID != null and COLLECTION_ID !=''">
+			and COLLECTION_ID = #{COLLECTION_ID}
+		</if>
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		a.GOODS_ID,
+		a.USER_ID,
+		a.ADD_TIME,
+		a.MEMO,
+		a.COLLECTION_ID,
+		b.GOODS_NAME,
+		b.GOODS_CODE,
+		substring_index(b.GOODS_PIC,',',1) as GOODS_PIC
+		from
+		SHOP_COLLECTION a,SHOP_GOODS b
+		where a.GOODS_ID=b.GOODS_ID
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and a.ADD_TIME &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and a.ADD_TIME &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 会员检索 -->
+		<if test="pd.USER_ID != null and pd.USER_ID !=''">
+			and a.USER_ID = #{pd.USER_ID}
+		</if>
+		<!-- 已上架 -->
+		and b.GOODS_FORSALE = 1
+		<!-- 未删除的商品 -->
+		and (b.GOODS_DELFLAG is null or b.GOODS_DELFLAG != 1)
+	</select>
+
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+	</select>
+
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		COLLECTION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!-- da -->
+</mapper>

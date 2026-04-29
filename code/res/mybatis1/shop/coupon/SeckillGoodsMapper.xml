@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SeckillGoodsMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_SECKILLGOODS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		SECKILL_ID,
+		GOODS_ID,	
+		GOODS_PRICE,	
+		GOODS_NUM,	
+		SECKILLGOODS_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SECKILL_ID},
+		#{GOODS_ID},	
+		#{GOODS_PRICE},	
+		#{GOODS_NUM},	
+		#{SECKILLGOODS_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SECKILLGOODS_ID = #{SECKILLGOODS_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			SECKILL_ID = #{SECKILL_ID},
+			GOODS_ID = #{GOODS_ID},
+			GOODS_PRICE = #{GOODS_PRICE},
+			GOODS_NUM = #{GOODS_NUM},
+		SECKILLGOODS_ID = SECKILLGOODS_ID
+		where 
+		SECKILLGOODS_ID = #{SECKILLGOODS_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			SECKILLGOODS_ID = #{SECKILLGOODS_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		a.SECKILL_ID,
+		a.GOODS_ID,
+		a.GOODS_PRICE,
+		a.GOODS_NUM,
+		a.SECKILLGOODS_ID,
+		b.GOODS_CODE,
+		b.GOODS_NAME,
+		b.GOODS_MODEL,
+		b.GOODS_PIC,
+		c.CATEGORY_NAME
+		from SHOP_SECKILLGOODS a,SHOP_GOODS b,SHOP_CATEGORY c
+		where a.GOODS_ID = b.GOODS_ID and b.GOODS_CATEGORY = c.CATEGORY_ID
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			b.GOODS_CODE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			b.GOODS_NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			b.GOODS_MODEL LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and b.ACTIVITY_DATE1 &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and b.ACTIVITY_DATE1 &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 秒杀活动 -->
+		and a.SECKILL_ID = #{pd.SECKILL_ID}
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SECKILLGOODS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

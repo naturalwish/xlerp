@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SecKillMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_SECKILL
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		SECKILL_NAME,	
+		START_TIME,	
+		END_TIME,	
+		SECKILL_MEMO,	
+		SECKILL_STATE,
+		ADD_TIME,
+		SECKILL_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SECKILL_NAME},	
+		#{START_TIME},	
+		#{END_TIME},	
+		#{SECKILL_MEMO},	
+		#{SECKILL_STATE},
+		#{ADD_TIME},
+		#{SECKILL_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SECKILL_ID = #{SECKILL_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			SECKILL_NAME = #{SECKILL_NAME},
+			START_TIME = #{START_TIME},
+			END_TIME = #{END_TIME},
+			SECKILL_MEMO = #{SECKILL_MEMO},
+		    SECKILL_STATE = #{SECKILL_STATE},
+			ADD_TIME = #{ADD_TIME},
+		SECKILL_ID = SECKILL_ID
+		where 
+		SECKILL_ID = #{SECKILL_ID}
+	</update>
+
+	<!-- 修改活动状态 -->
+	<update id="editState" parameterType="pd">
+		update
+			<include refid="tableName"></include>
+		set
+			SECKILL_STATE = #{SECKILL_STATE}
+		where
+			SECKILL_ID = #{SECKILL_ID}
+	</update>
+
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+			SECKILL_ID = #{SECKILL_ID}
+	</select>
+
+	<!-- 查询某商品是否在正在秒杀活动中 -->
+	<select id="isNoSecGood" parameterType="pd" resultType="java.lang.Integer">
+		select
+		count(1)
+		from SHOP_SECKILL
+		left join SHOP_SECKILLGOODS on SHOP_SECKILL.SECKILL_ID=SHOP_SECKILLGOODS.SECKILL_ID
+		where 1 = 1
+		and date_format(NOW(), '%H:%i:%S') > date_format(str_to_date(SHOP_SECKILL.START_TIME, '%H:%i:%S'),'%H:%i:%S')
+		and date_format(str_to_date(SHOP_SECKILL.END_TIME, '%H:%i:%S'),'%H:%i:%S') > date_format(NOW(), '%H:%i:%S')
+		and SHOP_SECKILLGOODS.GOODS_NUM >#{GOODS_USENUM}
+		and SHOP_SECKILLGOODS.GOODS_ID = #{GOODS_ID}
+		and SHOP_SECKILL.SECKILL_STATE=1
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			SECKILL_NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			SECKILL_MEMO LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and START_TIME &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and START_TIME &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 活动状态 -->
+		<if test="pd.SECKILL_STATE != null and pd.SECKILL_STATE !=''">
+			and SECKILL_STATE = #{pd.SECKILL_STATE}
+		</if>
+		order by str_to_date(START_TIME, '%H:%i:%S')
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPageApp" parameterType="page" resultType="pd">
+		select SECKILL_NAME, START_TIME, END_TIME, SECKILL_MEMO, SECKILL_STATE, ADD_TIME, SECKILL_ID,
+		case when date_format(NOW(), '%H:%i:%S')>date_format(str_to_date(START_TIME, '%H:%i:%S'),'%H:%i:%S') then (TIME_TO_SEC(END_TIME) - TIME_TO_SEC(date_format(NOW(), '%H:%i:%S')))
+		else TIME_TO_SEC(START_TIME)-TIME_TO_SEC(date_format(NOW(), '%H:%i:%S')) end as COUNTDOWN ,
+		case when date_format(NOW(), '%H:%i:%S')>date_format(str_to_date(START_TIME, '%H:%i:%S'),'%H:%i:%S') then 0 else 1 end as ISNOTSTART
+		from SHOP_SECKILL where 1=1 and date_format(str_to_date(END_TIME, '%H:%i:%S'),'%H:%i:%S') > date_format(NOW(), '%H:%i:%S')
+		and SECKILL_STATE= 1
+		order by str_to_date(START_TIME, '%H:%i:%S')
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SECKILL_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

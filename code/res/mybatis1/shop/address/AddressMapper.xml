@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AddressMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_ADDRESS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		ADDR_REALNAME,	
+		ADDR_PHONE,	
+		ADDR_CITY,	
+		ADDR_DETAILS,	
+		IS_DEFAULT,	
+		USER_ID,	
+		ADD_TIME,	
+		ADDR_MEMO,	
+		ADDRESS_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ADDR_REALNAME},	
+		#{ADDR_PHONE},	
+		#{ADDR_CITY},	
+		#{ADDR_DETAILS},	
+		#{IS_DEFAULT},	
+		#{USER_ID},	
+		#{ADD_TIME},	
+		#{ADDR_MEMO},	
+		#{ADDRESS_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ADDRESS_ID = #{ADDRESS_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ADDR_REALNAME = #{ADDR_REALNAME},
+			ADDR_PHONE = #{ADDR_PHONE},
+			ADDR_CITY = #{ADDR_CITY},
+			ADDR_DETAILS = #{ADDR_DETAILS},
+			IS_DEFAULT = #{IS_DEFAULT},
+			USER_ID = #{USER_ID},
+			ADD_TIME = #{ADD_TIME},
+			ADDR_MEMO = #{ADDR_MEMO},
+		ADDRESS_ID = ADDRESS_ID
+		where 
+		ADDRESS_ID = #{ADDRESS_ID}
+	</update>
+
+	<!-- 修改默认状态 -->
+	<update id="editDefault" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		IS_DEFAULT = 0
+		where
+		USER_ID = #{USER_ID}
+	</update>
+
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			ADDRESS_ID = #{ADDRESS_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1 = 1
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			ADDR_REALNAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			ADDR_PHONE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			ADDR_DETAILS LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and ADD_TIME &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and ADD_TIME &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 会员检索 -->
+		<if test="pd.USER_ID != null and pd.USER_ID !=''">
+			and USER_ID = #{pd.USER_ID}
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<!-- 会员检索 -->
+		<if test="pd.USER_ID != null and pd.USER_ID !='' ">
+			and USER_ID = #{pd.USER_ID}
+		</if>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ADDRESS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

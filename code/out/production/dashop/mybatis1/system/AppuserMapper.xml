@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AppuserMapper">
+
+    <resultMap type="User" id="userAndRoleResultMap">
+        <id column="USER_ID" property="USER_ID"/>
+        <result column="USERNAME" property="USERNAME"/>
+        <result column="PASSWORD" property="PASSWORD"/>
+        <result column="NAME" property="NAME"/>
+        <result column="RIGHTS" property="RIGHTS"/>
+        <result column="LAST_LOGIN" property="LAST_LOGIN"/>
+        <result column="IP" property="IP"/>
+        <result column="STATUS" property="STATUS"/>
+        <result column="SKIN" property="SKIN"/>
+        <association property="role" column="ROLE_ID" javaType="Role">
+            <id column="ROLE_ID" property="ROLE_ID"/>
+            <result column="ROLE_NAME" property="ROLE_NAME"/>
+            <result column="ROLE_RIGHTS" property="RIGHTS"/>
+        </association>
+    </resultMap>
+
+    <resultMap type="AppUser" id="userResultMap">
+        <id column="USER_ID" property="USER_ID"/>
+        <result column="USERNAME" property="NAME"/>
+        <result column="PARENT_ID" property="PARENT_ID"/>
+    </resultMap>
+
+    <!--表名 -->
+    <sql id="tableName">
+		SYS_APP_USER
+	</sql>
+
+    <!-- 字段 -->
+    <sql id="Field">
+		USER_ID,
+		USERNAME,
+		PASSWORD,
+		NAME,
+		RIGHTS,
+		ROLE_ID,
+		LAST_LOGIN,
+		IP,
+		STATUS,
+		BZ,
+		PHONE,
+		SEX,
+		SFID,
+		START_TIME,
+		END_TIME,
+		YEARS,
+		NUMBER,
+		EMAIL,
+		PARENT_ID,
+		INNER_CODE,
+		ADDRESS,
+		BANK,
+		BANK_NUMBER,
+		BANK_NAME,
+		ALIPAY,
+		WECHAT,
+		OPEN_ID,
+		UNION_ID,
+		PROXYSTATE
+	</sql>
+
+    <!-- 字段值 -->
+    <sql id="FieldValue">
+		#{USER_ID},
+		#{USERNAME},
+		#{PASSWORD},
+		#{NAME},
+		#{RIGHTS},
+		#{ROLE_ID},
+		#{LAST_LOGIN},
+		#{IP},
+		#{STATUS},
+		#{BZ},
+		#{PHONE},
+		#{SEX},
+		#{SFID},
+		#{START_TIME},
+		#{END_TIME},
+		#{YEARS},
+		#{NUMBER},
+		#{EMAIL},
+		#{PARENT_ID},
+		#{INNER_CODE},
+		#{ADDRESS},
+		#{BANK},
+		#{BANK_NUMBER},
+		#{BANK_NAME},
+		#{ALIPAY},
+		#{WECHAT},
+		#{OPEN_ID},
+		#{UNION_ID},
+		#{PROXYSTATE}
+	</sql>
+
+    <!-- 角色表 -->
+    <sql id="roleTableName">
+		SYS_ROLE
+	</sql>
+
+    <!-- 列出某角色下的所有会员 -->
+    <select id="listAllAppuserByRorlid" parameterType="pd" resultType="pd">
+        select
+        USER_ID
+        from
+        <include refid="tableName"></include>
+        where
+        ROLE_ID = #{ROLE_ID}
+    </select>
+
+    <!-- 判断用户名和密码 -->
+    <select id="getAppUserInfo" parameterType="pd" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where 1=1
+        <if test="USERNAME!=null and PASSWORD!=null">
+            and (USERNAME = #{USERNAME} or PHONE = #{USERNAME})
+            and PASSWORD=#{PASSWORD}
+        </if>
+        <if test="USER_ID!=null and USER_ID>0">
+            and USER_ID = #{USER_ID}
+        </if>
+    </select>
+
+    <!-- 会员列表 -->
+    <select id="userlistPage" parameterType="page" resultType="pd">
+        select u.USER_ID,
+        u.USERNAME,
+        u.PASSWORD,
+        u.LAST_LOGIN,
+        u.NAME,
+        u.IP,
+        u.START_TIME,
+        u.END_TIME,
+        u.YEARS,
+        u.STATUS,
+        u.EMAIL,
+        u.PHONE,
+        u.SEX,
+        u.NUMBER,
+        u.PARENT_ID,
+        r.ROLE_ID,
+        r.ROLE_NAME,
+        u.ADDRESS,
+        u.PROXYSTATE
+        from
+        <include refid="tableName"></include>
+        u,
+        <include refid="roleTableName"></include>
+        r
+        where u.ROLE_ID = r.ROLE_ID
+        and r.PARENT_ID = '2'
+        <if test="pd.keywords != null and pd.keywords!= ''"><!-- 关键词检索 -->
+            and (
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            or
+            u.NUMBER LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            or
+            u.NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            )
+        </if>
+        <if test="pd.ROLE_ID != null and pd.ROLE_ID != ''"><!-- 角色检索 -->
+            and u.ROLE_ID=#{pd.ROLE_ID}
+        </if>
+        <if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &gt;= #{pd.lastLoginStart}
+        </if>
+        <if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &lt;= #{pd.lastLoginEnd}
+        </if>
+        <if test="pd.STATUS != null and pd.STATUS != ''"><!-- 状态检索 -->
+            and u.STATUS=#{pd.STATUS}
+        </if>
+        order by u.NAME
+    </select>
+
+    <!-- 通过USERNAME获取数据 -->
+    <select id="findByUsername" parameterType="pd" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where 1 = 1
+        and ( USERNAME = #{USERNAME} or PHONE = #{USERNAME} or OPEN_ID = #{USERNAME} or UNION_ID = #{USERNAME})
+    </select>
+
+    <!-- 通过USER_ID获取名下会员体系 -->
+    <select id="findByInnerCode" parameterType="page" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where
+        INNER_CODE LIKE CONCAT(#{INNER_CODE},'%')
+    </select>
+
+    <!-- 通过邮箱获取数据 -->
+    <select id="findByEmail" parameterType="pd" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where
+        EMAIL = #{EMAIL}
+        <if test="USERNAME != null and USERNAME != ''">
+            and USERNAME != #{USERNAME}
+        </if>
+    </select>
+
+    <!-- 通过编号获取数据 -->
+    <select id="findByNumber" parameterType="pd" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where
+        NUMBER = #{NUMBER}
+        <if test="USERNAME != null and USERNAME != ''">
+            and USERNAME != #{USERNAME}
+        </if>
+    </select>
+
+    <!-- 新增会员 -->
+    <insert id="saveU" parameterType="pd">
+        insert into
+        <include refid="tableName"></include>
+        (
+        <include refid="Field"></include>
+        ) values (
+        <include refid="FieldValue"></include>
+        )
+    </insert>
+
+    <!-- 删除用户 -->
+    <delete id="deleteU" parameterType="pd">
+        delete from
+        <include refid="tableName"></include>
+        where
+        USER_ID = #{USER_ID}
+    </delete>
+
+    <!-- 修改 -->
+    <update id="editU" parameterType="pd">
+        update
+        <include refid="tableName"></include>
+        set
+        <if test="USERNAME != null and USERNAME != ''">
+        USERNAME = #{USERNAME},
+        </if>
+        <if test="NAME != null and NAME != ''">
+        NAME = #{NAME},
+        </if>
+        <if test="LAST_LOGIN != null and LAST_LOGIN != ''">
+            LAST_LOGIN = #{LAST_LOGIN},
+        </if>
+        <if test="ROLE_ID != null and ROLE_ID != ''">
+        ROLE_ID = #{ROLE_ID},
+        </if>
+        <if test="BZ != null and BZ != ''">
+        BZ = #{BZ},
+        </if>
+        <if test="PHONE != null and PHONE != ''">
+        PHONE = #{PHONE},
+        </if>
+        <if test="SEX != null">
+        SEX = #{SEX},
+        </if>
+        <if test="SFID != null and SFID != ''">
+        SFID = #{SFID},
+        </if>
+        <if test="START_TIME != null and START_TIME != ''">
+        START_TIME = #{START_TIME},
+        </if>
+        <if test="END_TIME != null and END_TIME != ''">
+        END_TIME = #{END_TIME},
+        </if>
+        <if test="YEARS != null and YEARS != ''">
+        YEARS = #{YEARS},
+        </if>
+        <if test="STATUS != null and STATUS != ''">
+        STATUS = #{STATUS},
+        </if>
+        <if test="NUMBER != null and NUMBER != ''">
+        NUMBER = #{NUMBER},
+        </if>
+        <if test="EMAIL != null">
+        EMAIL = #{EMAIL},
+        </if>
+        <if test="PARENT_ID != null and PARENT_ID != ''">
+        PARENT_ID = #{PARENT_ID},
+        </if>
+        <if test="INNER_CODE != null and INNER_CODE != ''">
+        INNER_CODE = #{INNER_CODE},
+        </if>
+        <if test="PASSWORD != null and PASSWORD != ''">
+            PASSWORD = #{PASSWORD},
+        </if>
+        <if test="ADDRESS != null and ADDRESS != ''">
+            ADDRESS = #{ADDRESS},
+        </if>
+        <if test="BANK != null and BANK != ''">
+            BANK = #{BANK},
+        </if>
+        <if test="BANK_NUMBER != null and BANK_NUMBER != ''">
+            BANK_NUMBER = #{BANK_NUMBER},
+        </if>
+        <if test="BANK_NAME != null and BANK_NAME != ''">
+            BANK_NAME = #{BANK_NAME},
+        </if>
+        <if test="ALIPAY != null and ALIPAY != ''">
+            ALIPAY = #{ALIPAY},
+        </if>
+        <if test="WECHAT != null and WECHAT != ''">
+            WECHAT = #{WECHAT},
+        </if>
+        <if test="OPEN_ID != null and OPEN_ID != ''">
+            OPEN_ID = #{OPEN_ID},
+        </if>
+        <if test="UNION_ID != null and UNION_ID != ''">
+            UNION_ID = #{UNION_ID},
+        </if>
+        <if test="PROXYSTATE != null and PROXYSTATE != ''">
+            PROXYSTATE = #{PROXYSTATE},
+        </if>
+        USER_ID = #{USER_ID}
+        where
+        USER_ID = #{USER_ID}
+    </update>
+
+    <!-- 通过ID获取数据 -->
+    <select id="findByUiId" parameterType="pd" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include>
+        where
+        USER_ID = #{USER_ID}
+    </select>
+
+    <!-- 通过ID获取佣金数据，下线数，订单金额 -->
+    <select id="getUserCommission" parameterType="pd" resultType="pd">
+        select u.*,
+        ifnull((select count(1) from sys_app_user where INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') 
+                and ifnull(LENGTH(u.INNER_CODE),0)+64>=ifnull(LENGTH(INNER_CODE),0) ) ,0) as USER_NUM,
+        ifnull((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+                INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+64>=ifnull(LENGTH(INNER_CODE),0) ) 
+                and o.status in (1,2,5,6)),0) as ORDER_TOTAL,
+        (ifnull(((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+32=ifnull(LENGTH(INNER_CODE),0) )
+        and o.status in (1,2,5,6))*(select n.COMMISION_RATIO from SHOP_COMMISION n where n.COMMISION_SORT=1 ))/10000,0)
+        +ifnull(((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+64=ifnull(LENGTH(INNER_CODE),0) )
+        and o.status in (1,2,5,6))*(select n.COMMISION_RATIO from SHOP_COMMISION n where n.COMMISION_SORT=2 ))/10000,0)
+        -ifnull((select sum(TB_APPUSERWITHDRAW.WITHDRAWTOTAL) from TB_APPUSERWITHDRAW where USERID=u.USER_ID ),0))as COMMISION_TOTAL
+        from
+        SYS_APP_USER u
+        where
+        u.USER_ID = #{USER_ID}
+    </select>
+
+    <!-- 通过ID获取佣金数据，下线数，订单金额 -->
+    <select id="getUserFenxiao" parameterType="page" resultType="pd">
+        select <include refid="Field"></include>,
+        ifnull((select count(1) from sys_app_user where INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%')
+                and ifnull(LENGTH(u.INNER_CODE),0)+64>=ifnull(LENGTH(INNER_CODE),0) ) ,0) as USER_NUM,
+        ifnull((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+                INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+64>=ifnull(LENGTH(INNER_CODE),0) )
+                and o.status in (1,2,5,6)),0) as ORDER_TOTAL,
+        (ifnull(((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+32=ifnull(LENGTH(INNER_CODE),0) )
+        and o.status in (1,2,5,6))*(select n.COMMISION_RATIO from SHOP_COMMISION n where n.COMMISION_SORT=1 ))/10000,0)
+        +ifnull(((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE !=u.INNER_CODE and INNER_CODE like concat(u.INNER_CODE,'%') and ifnull(LENGTH(u.INNER_CODE),0)+64=ifnull(LENGTH(INNER_CODE),0) )
+        and o.status in (1,2,5,6))*(select n.COMMISION_RATIO from SHOP_COMMISION n where n.COMMISION_SORT=2 ))/10000,0)
+        -ifnull((select sum(TB_APPUSERWITHDRAW.WITHDRAWTOTAL) from TB_APPUSERWITHDRAW where USERID=u.USER_ID ),0))as COMMISION_TOTAL
+        from
+        SYS_APP_USER u
+        where
+        u.USER_ID = #{pd.USER_ID}
+    </select>
+
+    <!-- 全部会员 -->
+    <select id="listAllUser" parameterType="pd" resultType="pd">
+        select u.USER_ID,
+        u.USERNAME,
+        u.PASSWORD,
+        u.LAST_LOGIN,
+        u.NAME,
+        u.IP,
+        u.END_TIME,
+        u.YEARS,
+        u.STATUS,
+        u.EMAIL,
+        u.PHONE,
+        u.SEX,
+        u.SFID,
+        u.NUMBER,
+        u.PARENT_ID,
+        r.ROLE_ID,
+        r.ROLE_NAME,
+        u.ADDRESS
+        from
+        <include refid="tableName"></include>
+        u,
+        <include refid="roleTableName"></include>
+        r
+        where u.ROLE_ID = r.ROLE_ID
+        and r.PARENT_ID = '2'
+        <if test="keywords != null and keywords!= ''"><!-- 关键词检索 -->
+            and (
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{keywords}),'%')
+            or
+            u.EMAIL LIKE CONCAT(CONCAT('%', #{keywords}),'%')
+            or
+            u.NUMBER LIKE CONCAT(CONCAT('%', #{keywords}),'%')
+            )
+        </if>
+        <if test="ROLE_ID != null and ROLE_ID != ''"><!-- 角色检索 -->
+            and u.ROLE_ID=#{ROLE_ID}
+        </if>
+        <if test="lastLoginStart!=null and lastLoginStart!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &gt;= #{lastLoginStart}
+        </if>
+        <if test="lastLoginEnd!=null and lastLoginEnd!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &lt;= #{lastLoginEnd}
+        </if>
+        <if test="STATUS != null and STATUS != ''"><!-- 状态检索 -->
+            and u.STATUS=#{STATUS}
+        </if>
+        order by u.NAME
+    </select>
+
+    <!-- 批量删除用户 -->
+    <delete id="deleteAllU" parameterType="String">
+        delete from
+        <include refid="tableName"></include>
+        where
+        USER_ID in
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <!-- 获取总数 -->
+    <select id="getAppUserCount" parameterType="String" resultType="pd">
+        select
+        count(USER_ID) appUserCount
+        from
+        <include refid="tableName"></include>
+    </select>
+
+    <!-- 获取内码 -->
+    <select id="getAppUserInnerCode" parameterType="String" resultType="String">
+        select
+        INNER_CODE
+        from
+        <include refid="tableName"></include>
+        where
+        USER_ID = #{USER_ID}
+    </select>
+
+    <!-- 根据unionid 获得 USER_ID -->
+    <select id="getUserIDByUnionID" parameterType="String" resultType="String">
+        select
+        USER_ID
+        from
+        <include refid="tableName"></include>
+        where
+        UNION_ID = #{UNION_ID}
+    </select>
+
+    <!-- 通过ID获取其子级树列表 -->
+    <select id="listSubUserByParentId" parameterType="String" resultMap="userResultMap">
+        select
+        u.USER_ID,
+        concat(u.USERNAME,'(',u.NAME,')') as USERNAME,
+        u.NAME,
+        u.PARENT_ID
+        from
+        <include refid="tableName"></include>
+        u,
+        <include refid="roleTableName"></include>
+        r
+        where u.ROLE_ID = r.ROLE_ID
+        and r.PARENT_ID = '2'
+        and u.PARENT_ID = #{parentId} order by u.NAME
+    </select>
+
+    <!-- 通过ID获取其子级会员列表 -->
+    <select id="subUserlistPage" parameterType="page" resultType="pd">
+        select u.USER_ID,
+        u.USERNAME,
+        u.PASSWORD,
+        u.LAST_LOGIN,
+        u.NAME,
+        u.IP,
+        u.END_TIME,
+        u.YEARS,
+        u.STATUS,
+        u.EMAIL,
+        u.PHONE,
+        u.SEX,
+        u.NUMBER,
+        u.PARENT_ID,
+        u.ADDRESS,
+        r.ROLE_ID,
+        r.ROLE_NAME,
+        ifnull((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE like concat(u.INNER_CODE,'%') and INNER_CODE != u.INNER_CODE) and o.status in (1,2,5,6)),0) as ORDER_TOTAL,
+        ifnull((((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE like concat(u.INNER_CODE,'%') and INNER_CODE != u.INNER_CODE) and o.status in (1,2,5,6)))*(select n.COMMISION_RATIO from
+        SHOP_COMMISION n where n.COMMISION_SORT=(ifnull(LENGTH(u.INNER_CODE),0)/32)))/10000,0) as COMMISION_TOTAL
+        from
+        <include refid="tableName"></include>
+        u,
+        <include refid="roleTableName"></include>
+        r
+        where u.ROLE_ID = r.ROLE_ID
+        and r.PARENT_ID = '2'
+        <if test="pd.keywords != null and pd.keywords!= ''"><!-- 关键词检索 -->
+            and (
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            or
+            u.EMAIL LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            or
+            u.NUMBER LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+            )
+        </if>
+        <if test="pd.ROLE_ID != null and pd.ROLE_ID != ''"><!-- 角色检索 -->
+            and u.ROLE_ID=#{pd.ROLE_ID}
+        </if>
+        <if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &gt;= #{pd.lastLoginStart}
+        </if>
+        <if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 到期时间检索 -->
+            and u.END_TIME &lt;= #{pd.lastLoginEnd}
+        </if>
+        <if test="pd.STATUS != null and pd.STATUS != ''"><!-- 状态检索 -->
+            and u.STATUS=#{pd.STATUS}
+        </if>
+        <if test="pd.USER_ID != null and pd.USER_ID != ''"><!-- 邀请码 -->
+            and u.PARENT_ID=#{pd.USER_ID}
+        </if>
+        order by u.NAME
+    </select>
+
+    <!-- 通过当前用户ID获取其子级会员订单额，佣金 -->
+    <select id="currentUserlistPage" parameterType="page" resultType="pd">
+        select u.USER_ID,
+        u.USERNAME,
+        ifnull((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE like concat(u.INNER_CODE,'%') and INNER_CODE != u.INNER_CODE) and o.status in (1,2,5,6)),0) as ORDER_TOTAL,
+        ifnull((((select sum(o.ORDER_TOTAL) from SHOP_ORDER o where o.USER_ID in (select USER_ID from SYS_APP_USER where
+        INNER_CODE like concat(u.INNER_CODE,'%') and INNER_CODE != u.INNER_CODE) and o.status in (1,2,5,6)))*(select n.COMMISION_RATIO from
+        SHOP_COMMISION n where n.COMMISION_SORT=(ifnull(LENGTH(u.INNER_CODE),0)/32)))/10000,0) as COMMISION_TOTAL
+        from SYS_APP_USER u,SYS_ROLE r
+        where u.ROLE_ID = r.ROLE_ID
+        and r.PARENT_ID = '2'
+        <if test="pd.USER_ID != null and pd.USER_ID != ''"><!-- 邀请码 -->
+            and u.PARENT_ID=#{pd.USER_ID}
+        </if>
+    </select>
+
+    <!-- 通过User_ID获取其子级会员列表 -->
+    <select id="getSubUserList" parameterType="page" resultType="pd">
+        select
+        <include refid="Field"></include>
+        from
+        <include refid="tableName"></include> u
+        where 1 =1
+        <if test='pd.LEVEL == "1" or pd.LEVEL == "null" or pd.LEVEL == ""'>
+            and  ifnull(LENGTH(u.INNER_CODE),0)= ifnull(LENGTH(#{pd.INNER_CODE}),0)+32 and u.INNER_CODE like concat(#{pd.INNER_CODE},'%')
+        </if>
+        <if test='pd.LEVEL == "2"'>
+            and  ifnull(LENGTH(u.INNER_CODE),0) = ifnull(LENGTH(#{pd.INNER_CODE}),0)+64 and u.INNER_CODE like concat(#{pd.INNER_CODE},'%')
+        </if>
+    </select>
+
+    <!-- 通过用户ID获取用户信息和角色信息 -->
+    <select id="getUserAndRoleById" parameterType="String" resultMap="userAndRoleResultMap">
+        select  u.USER_ID,
+        u.USERNAME,
+        u.NAME,
+        u.RIGHTS as USER_RIGHTS,
+        u.PASSWORD,
+        'no-skin' as SKIN,
+        r.ROLE_ID,
+        r.ROLE_NAME,
+        r.RIGHTS as ROLE_RIGHTS
+        from
+        <include refid="tableName"></include> u
+        left join
+        <include refid="roleTableName"></include> r
+        on u.ROLE_ID=r.ROLE_ID
+        where u.STATUS=1
+        and u.USER_ID=#{USER_ID}
+    </select>
+    <!-- DA QQ2012 -->
+</mapper>

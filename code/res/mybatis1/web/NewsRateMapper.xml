@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NewsRateMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		WEB_NEWSRATE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		NEWSRATE_USERID,
+		NEWSRATE_USERNAME,	
+		NEWSRATE_ADDTIME,	
+		NEWSRATE_CONTENT,	
+		NEWS_ID,	
+		NEWSRATE_MEMO,
+		NEWSRATE_STATUS,
+		NEWSRATE_PARENTID,
+		NEWSRATE_TOUSERID,
+		NEWSRATE_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{NEWSRATE_USERID},
+		#{NEWSRATE_USERNAME},	
+		#{NEWSRATE_ADDTIME},	
+		#{NEWSRATE_CONTENT},	
+		#{NEWS_ID},	
+		#{NEWSRATE_MEMO},
+		#{NEWSRATE_STATUS},
+		#{NEWSRATE_PARENTID},
+		#{NEWSRATE_TOUSERID},
+		#{NEWSRATE_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			NEWSRATE_ID = #{NEWSRATE_ID}
+	</delete>
+
+	<!-- 删除 NEWID-->
+	<delete id="deleteByNEWID" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		NEWS_ID = #{NEWS_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+			NEWSRATE_USERID = #{NEWSRATE_USERID},
+			NEWSRATE_USERNAME = #{NEWSRATE_USERNAME},
+			NEWSRATE_ADDTIME = #{NEWSRATE_ADDTIME},
+			NEWSRATE_CONTENT = #{NEWSRATE_CONTENT},
+			NEWS_ID = #{NEWS_ID},
+			NEWSRATE_MEMO = #{NEWSRATE_MEMO},
+			NEWSRATE_STATUS = #{NEWSRATE_STATUS},
+			NEWSRATE_PARENTID = #{NEWSRATE_PARENTID},
+			NEWSRATE_TOUSERID = #{NEWSRATE_TOUSERID},
+		NEWSRATE_ID = NEWSRATE_ID
+		where 
+		NEWSRATE_ID = #{NEWSRATE_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			NEWSRATE_ID = #{NEWSRATE_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>,b.Name as NEWSRATE_USERIDNAME,c.NAME as NEWSRATE_TOUSERIDNAME,b.SFID
+		from 
+		<include refid="tableName"></include> a
+		left join sys_app_user b on a.NEWSRATE_USERID = b.USER_ID
+		left join sys_app_user c on a.NEWSRATE_TOUSERID = c.USER_ID
+		where 1=1
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			NEWSRATE_USERNAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			NEWSRATE_CONTENT LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			NEWSRATE_MEMO LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and NEWSRATE_ADDTIME &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and NEWSRATE_ADDTIME &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 新闻检索 -->
+		<if test="pd.NEWS_ID != null and pd.NEWS_ID != ''">
+			and NEWS_ID = #{pd.NEWS_ID}
+		</if>
+		<!-- 根评论 -->
+		<if test="pd.NEWSRATE_PARENTID == '0'.toString()">
+			and (NEWSRATE_PARENTID = '0' or NEWSRATE_PARENTID is null or NEWSRATE_PARENTID = '')
+		</if>
+		<if test="pd.NEWSRATE_PARENTID != null and pd.NEWSRATE_PARENTID != '' and pd.NEWSRATE_PARENTID != '0'.toString() ">
+			and (NEWSRATE_ID = #{pd.NEWSRATE_PARENTID} or NEWSRATE_PARENTID = #{pd.NEWSRATE_PARENTID})
+		</if>
+		<!-- 获取评论详情 -->
+		<if test="pd.RATEUSER_ID != null and pd.RATEUSER_ID != ''">
+			and (NEWSRATE_USERID = #{pd.RATEUSER_ID} or NEWSRATE_TOUSERID = #{pd.RATEUSER_ID} or NEWSRATE_ID in (
+			select DISTINCT NEWSRATE_PARENTID  from web_newsrate where NEWSRATE_USERID = #{pd.RATEUSER_ID} or NEWSRATE_TOUSERID = #{pd.RATEUSER_ID}))
+		</if>
+		order by a.NEWSRATE_ADDTIME
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1 = 1
+		<!-- 新闻检索 -->
+		<if test="NEWS_ID != null and NEWS_ID != ''">
+			and NEWS_ID = #{NEWS_ID}
+		</if>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			NEWSRATE_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+
+	<!-- 批量删除 根据NEWID-->
+	<delete id="deleteAllByNEWID" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		NEWS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

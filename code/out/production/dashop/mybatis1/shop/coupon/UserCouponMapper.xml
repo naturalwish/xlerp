@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserCouponMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_USERCOUPON
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		USER_ID,	
+		COUPON_ID,	
+		COUPON_STATE,	
+		APPLY_TIME,	
+		USE_TIME,	
+		MEMO,	
+		USERCOUPON_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{USER_ID},	
+		#{COUPON_ID},	
+		#{COUPON_STATE},	
+		#{APPLY_TIME},	
+		#{USE_TIME},	
+		#{MEMO},	
+		#{USERCOUPON_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			USERCOUPON_ID = #{USERCOUPON_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		USER_ID = #{USER_ID},
+		COUPON_ID = #{COUPON_ID},
+		COUPON_STATE = #{COUPON_STATE},
+		APPLY_TIME = #{APPLY_TIME},
+		USE_TIME = #{USE_TIME},
+		MEMO = #{MEMO},
+		USERCOUPON_ID = USERCOUPON_ID
+		where
+		USERCOUPON_ID = #{USERCOUPON_ID}
+	</update>
+
+	<!-- 修改 -->
+	<update id="editstate" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		USE_TIME = #{USE_TIME},
+		COUPON_STATE = #{COUPON_STATE}
+		where 1 = 1
+		and USER_ID = #{USER_ID}
+		and COUPON_ID = #{COUPON_ID}
+
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="USERCOUPON_ID != null and USERCOUPON_ID !=''">
+			and USERCOUPON_ID = #{USERCOUPON_ID}
+		</if>
+		<if test="COUPON_ID != null and COUPON_ID !=''">
+			and COUPON_ID = #{COUPON_ID}
+		</if>
+		<if test="USER_ID != null and USER_ID !=''">
+			and USER_ID = #{USER_ID}
+		</if>
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		a.USER_ID,
+		a.COUPON_ID,
+		a.COUPON_STATE,
+		a.APPLY_TIME,
+		a.USE_TIME,
+		a.MEMO,
+		a.USERCOUPON_ID,
+		b.USERNAME as USER_NAME,
+		c.COUPON_NAME,
+		c.COUPON_PRICE,
+		c.USE_PRICE,
+		c.STARTTIME,
+		c.ENDTIME
+		from
+		SHOP_USERCOUPON a,SYS_APP_USER b,SHOP_COUPON c
+		where a.USER_ID = b.USER_ID and a.COUPON_ID = c.COUPON_ID
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			c.COUPON_NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			c.CHANGE_CODE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 领用开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and a.APPLY_TIME &gt;= #{pd.lastStart}
+		</if>
+		<!-- 领用结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and a.APPLY_TIME &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 获取账户下的优惠券 -->
+		<if test="pd.USER_ID != null and pd.USER_ID !=''">
+			and a.USER_ID = #{pd.USER_ID}
+		</if>
+		<!-- 优惠券状态检索 -->
+		<if test='pd.COUPON_STATE == "0" '>
+			and a.COUPON_STATE=#{pd.COUPON_STATE} and c.ENDTIME >= sysdate()
+		</if>
+		<if test='pd.COUPON_STATE == "1" '>
+			and a.COUPON_STATE=#{pd.COUPON_STATE}
+		</if>
+		<if test='pd.COUPON_STATE == "-1" '>
+			and c.ENDTIME &lt; sysdate() and a.COUPON_STATE='0'
+		</if>
+		<!-- 优惠券开始时间判断 -->
+		<if test="pd.NOWTIME != null and pd.NOWTIME != ''">
+			and c.STARTTIME &lt;=#{pd.NOWTIME} and c.ENDTIME >= #{pd.NOWTIME}
+		</if>
+		<!-- 优惠券额度判断 -->
+		<if test="pd.USE_PRICE != null and pd.USE_PRICE != ''">
+			and c.USE_PRICE &lt;=#{pd.USE_PRICE}
+		</if>
+		order by c.COUPON_PRICE desc
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			USERCOUPON_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+
+	<!-- 已领取数量 -->
+	<select id="count" parameterType="pd" resultType="java.lang.Integer">
+		select
+		count(1)
+		from
+		<include refid="tableName"></include>
+		where
+		COUPON_ID = #{COUPON_ID}
+	</select>
+	<!-- da -->
+</mapper>

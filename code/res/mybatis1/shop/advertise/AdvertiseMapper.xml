@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AdvertiseMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_ADVERTISE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		ADVERTISE_NAME,	
+		ADVERTISE_POSITION,	
+		STARTDATE,	
+		ENDDATE,	
+		ADVERTISE_LINK,	
+		ADVERTISE_PIC,	
+		IS_ENABLE,	
+		LINK_MAN,	
+		EMAIL,	
+		TELEPHONE,	
+		ADVERTISE_DETAILSPIC,
+		ADVERTISE_MEMO,
+		SECKILL_ID,
+		COUPON_ID,
+		ADVERTISE_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ADVERTISE_NAME},	
+		#{ADVERTISE_POSITION},	
+		#{STARTDATE},	
+		#{ENDDATE},	
+		#{ADVERTISE_LINK},	
+		#{ADVERTISE_PIC},	
+		#{IS_ENABLE},	
+		#{LINK_MAN},	
+		#{EMAIL},	
+		#{TELEPHONE},	
+		#{ADVERTISE_DETAILSPIC},
+		#{ADVERTISE_MEMO},
+		#{SECKILL_ID},
+		#{COUPON_ID},
+		#{ADVERTISE_ID}
+	</sql>
+
+	<!-- 广告位置表 -->
+	<sql id="positionTableName">
+		SHOP_POSITION
+	</sql>
+
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ADVERTISE_ID = #{ADVERTISE_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ADVERTISE_NAME = #{ADVERTISE_NAME},
+			ADVERTISE_POSITION = #{ADVERTISE_POSITION},
+			STARTDATE = #{STARTDATE},
+			ENDDATE = #{ENDDATE},
+			ADVERTISE_LINK = #{ADVERTISE_LINK},
+			ADVERTISE_PIC = #{ADVERTISE_PIC},
+			IS_ENABLE = #{IS_ENABLE},
+			LINK_MAN = #{LINK_MAN},
+			EMAIL = #{EMAIL},
+			TELEPHONE = #{TELEPHONE},
+			ADVERTISE_MEMO = #{ADVERTISE_MEMO},
+			SECKILL_ID = #{SECKILL_ID},
+			COUPON_ID = #{COUPON_ID},
+			ADVERTISE_ID = ADVERTISE_ID
+		where 
+		ADVERTISE_ID = #{ADVERTISE_ID}
+	</update>
+
+	<!-- 修改广告详情图片-->
+	<update id="editDetailsPic" parameterType="pd">
+		update
+			<include refid="tableName"></include>
+		set
+			ADVERTISE_DETAILSPIC = #{ADVERTISE_DETAILSPIC}
+		where
+		ADVERTISE_ID = #{ADVERTISE_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			ADVERTISE_ID = #{ADVERTISE_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		a.ADVERTISE_NAME,
+		a.ADVERTISE_POSITION,
+		a.STARTDATE,
+		a.ENDDATE,
+		a.ADVERTISE_LINK,
+		a.ADVERTISE_PIC,
+		a.IS_ENABLE,
+		a.LINK_MAN,
+		a.EMAIL,
+		a.TELEPHONE,
+		a.ADVERTISE_ID,
+		b.POSITION_NAME
+		from 
+		<include refid="tableName"></include> a,<include refid="positionTableName"></include> b
+		where a.ADVERTISE_POSITION=b.POSITION_ID
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and
+			(
+			a.ADVERTISE_NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			a.ADVERTISE_POSITION LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<!-- 开始时间 -->
+		<if test="pd.lastStart != null and pd.lastStart !=''">
+			and a.STARTDATE &gt;= #{pd.lastStart}
+		</if>
+		<!-- 结束时间 -->
+		<if test="pd.lastEnd != null and pd.lastEnd !=''">
+			and a.STARTDATE &lt;= #{pd.lastEnd}
+		</if>
+		<!-- 领取方式检索 -->
+		<if test="pd.IS_ENABLE != null and pd.IS_ENABLE != ''">
+			and a.IS_ENABLE=#{pd.IS_ENABLE}
+		</if>
+		<!-- 位置类别 -->
+		<if test="pd.POSITION_TEMPLATE!= null and pd.POSITION_TEMPLATE != ''">
+			and b.POSITION_TEMPLATE LIKE CONCAT(CONCAT('%',  #{pd.POSITION_TEMPLATE}),'%')
+		</if>
+		order by a.ADVERTISE_NAME
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ADVERTISE_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

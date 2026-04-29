@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ExpressConfigMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_EXPRESSCONFIG
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		PARTNER_ID,	
+		PARTNER_KEY,	
+		EXPRESSCONFIG_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{PARTNER_ID},	
+		#{PARTNER_KEY},	
+		#{EXPRESSCONFIG_ID}
+	</sql>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			PARTNER_ID = #{PARTNER_ID},
+			PARTNER_KEY = #{PARTNER_KEY},
+		EXPRESSCONFIG_ID = EXPRESSCONFIG_ID
+		where 
+		EXPRESSCONFIG_ID = #{EXPRESSCONFIG_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			EXPRESSCONFIG_ID = 1
+	</select>
+	<!-- da -->
+</mapper>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NewsMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		WEB_NEWS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+        SORTID,
+		TITLE,	
+		CTIME,	
+		STEMFROM,
+		USER_ID,
+		IMAGE,	
+		SHORTCONTENT,	
+		CONTENT,
+		HIDE,
+		WEIGHT,
+		LIKES,
+		LIKEUSERS,
+		STATE,
+		TARGET,
+		NEWS_TIPOFFS,
+		NEWS_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SORTID},
+		#{TITLE},	
+		#{CTIME},	
+		#{STEMFROM},
+		#{USER_ID},
+		#{IMAGE},	
+		#{SHORTCONTENT},	
+		#{CONTENT},
+		#{HIDE},
+		#{WEIGHT},
+		#{LIKES},
+		#{USERLIKES},
+		#{STATE},
+		#{TARGET},
+		#{NEWS_TIPOFFS},
+		#{NEWS_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			NEWS_ID = #{NEWS_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		    SORTID = #{SORTID},
+			TITLE = #{TITLE},
+			STEMFROM = #{STEMFROM},
+			IMAGE = #{IMAGE},
+			SHORTCONTENT = #{SHORTCONTENT},
+			CONTENT = #{CONTENT},
+			HIDE = #{HIDE},
+			WEIGHT = #{WEIGHT},
+			LIKES = #{LIKES},
+		    LIKEUSERS = #{LIKEUSERS},
+			STATE = #{STATE},
+			TARGET = #{TARGET},
+			NEWS_TIPOFFS = #{NEWS_TIPOFFS},
+			NEWS_ID = NEWS_ID
+		where 
+		NEWS_ID = #{NEWS_ID}
+	</update>
+
+	<!-- 修改审核状态 -->
+	<update id="editState" parameterType="pd">
+		update
+			<include refid="tableName"></include>
+		set
+			STATE = #{STATE}
+		where
+			NEWS_ID = #{NEWS_ID}
+	</update>
+
+	<!-- 点赞 -->
+	<update id="likes" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		LIKES = ifnull(LIKES,0) + ${RESULT},
+		LIKEUSERS = #{LIKEUSERS}
+		where
+		NEWS_ID = #{NEWS_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			NEWS_ID = #{NEWS_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>,
+		(select count(1) from web_newsrate  where web_newsrate.NEWS_ID = web_news.NEWS_ID and web_newsrate.NEWSRATE_PARENTID='0') as 'NEWS_RATES',
+		(select SEX from (select USER_ID,SEX from sys_user UNION select USER_ID,SEX from sys_app_user) us where us.USER_ID=web_news.USER_ID) as 'SEX',
+		(select SFID from (select USER_ID,SFID from sys_app_user UNION select USER_ID,PHOTO2 as SFID from SYS_USERPHOTO) us where us.USER_ID=web_news.USER_ID and LENGTH(us.SFID)>0 LIMIT 1) as 'SFID'
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+			(
+			TITLE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			SHORTCONTENT LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			)
+		</if>
+		<if test="pd.HIDE != null and pd.HIDE != ''">
+			and HIDE =#{pd.HIDE}
+		</if>
+		<if test="pd.SORTID != null and pd.SORTID != ''">
+			and SORTID =#{pd.SORTID}
+		</if>
+		<if test="pd.STATE != null and pd.STATE != ''">
+			and STATE =#{pd.STATE}
+		</if>
+		<if test="pd.TARGET != null and pd.TARGET != ''">
+			and TARGET LIKE CONCAT(CONCAT('%', #{pd.TARGET}),'%')
+		</if>
+		<!-- 获取用户评论过的文章 -->
+		<if test="pd.RATEUSER_ID != null and pd.RATEUSER_ID != ''">
+			and NEWS_ID in (select NEWS_ID from web_newsrate where NEWSRATE_USERID = #{pd.RATEUSER_ID} or NEWSRATE_USERID = #{pd.RATEUSER_ID})
+		</if>
+		order by WEIGHT desc,CTIME desc
+	</select>
+
+	<!-- 通过USER_ID查询是否已点赞 -->
+	<select id="findByUserId" parameterType="pd" resultType="int">
+		select
+			count(1)
+		from
+			<include refid="tableName"></include>
+		where
+			NEWS_ID = #{NEWS_ID}
+			<!-- 账号ID -->
+			<if test="USER_ID != null and USER_ID != ''">
+				and LIKEUSERS LIKE CONCAT(CONCAT('%', #{USER_ID}),'%')
+			</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+			<include refid="Field"></include>
+		from 
+			<include refid="tableName"></include>
+		where
+			HIDE = '0'
+		order by WEIGHT desc,CTIME desc
+		limit #{start},#{newsnumber}
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+			<include refid="tableName"></include>
+		where 
+			NEWS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

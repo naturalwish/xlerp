@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="GoodsRateMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_GOODSRATE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		RATE_ID,	
+		RATE_GOODS,
+		RATE_USERID,
+		RATE_USERNAME,	
+		RATE_SCORE,	
+		RATE_CONTENT,	
+		RATE_SIMLAR,	
+		RATE_SERVICE,	
+		RATE_LOGISTICS,	
+		RATE_ADDTIME,	
+		RATE_IP,	
+		RATE_MEMO,
+		RATE_ATTRIBUTEID,
+		RATE_PICS,
+		GOODSRATE_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{RATE_ID},	
+		#{RATE_GOODS},
+		#{RATE_USERID},
+		#{RATE_USERNAME},	
+		#{RATE_SCORE},	
+		#{RATE_CONTENT},	
+		#{RATE_SIMLAR},	
+		#{RATE_SERVICE},	
+		#{RATE_LOGISTICS},	
+		#{RATE_ADDTIME},	
+		#{RATE_IP},	
+		#{RATE_MEMO},
+		#{RATE_ATTRIBUTEID},
+		#{RATE_PICS},
+		#{GOODSRATE_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			GOODSRATE_ID = #{GOODSRATE_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			RATE_ID = #{RATE_ID},
+			RATE_GOODS = #{RATE_GOODS},
+			RATE_USERNAME = #{RATE_USERNAME},
+			RATE_SCORE = #{RATE_SCORE},
+			RATE_CONTENT = #{RATE_CONTENT},
+			RATE_SIMLAR = #{RATE_SIMLAR},
+			RATE_SERVICE = #{RATE_SERVICE},
+			RATE_LOGISTICS = #{RATE_LOGISTICS},
+			RATE_ADDTIME = #{RATE_ADDTIME},
+			RATE_IP = #{RATE_IP},
+			RATE_MEMO = #{RATE_MEMO},
+			RATE_PICS = #{RATE_PICS},
+		GOODSRATE_ID = GOODSRATE_ID
+		where 
+		GOODSRATE_ID = #{GOODSRATE_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			GOODSRATE_ID = #{GOODSRATE_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>,b.NAME,b.SFID
+		from 
+		<include refid="tableName"></include> a
+		left join sys_app_user b on a.RATE_USERID = b.USER_ID
+		where 1=1
+		<!-- 根据商品查询其评价 -->
+		<if test="pd.GOODS_ID != null and pd.GOODS_ID != ''">
+			and RATE_GOODS = #{pd.GOODS_ID}
+		</if>
+		ORDER BY RATE_ADDTIME DESC
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			GOODSRATE_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>

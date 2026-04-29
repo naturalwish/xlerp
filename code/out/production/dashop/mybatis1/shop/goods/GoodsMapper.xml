@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="GoodsMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SHOP_GOODS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		GOODS_PIC,	
+		GOODS_NAME,	
+		GOODS_TITLE,	
+		GOODS_PRICE,	
+		GOODS_NUM,	
+		GOODS_CODE,	
+		GOODS_NUMBER,	
+		GOODS_FORSALE,	
+		GOODS_BEST,	
+		GOODS_NEW,	
+		GOODS_HOT,	
+		GOODS_BRAND,	
+		MEMBER_PRICE,	
+		GOODS_DISCOUNT1,	
+		GOODS_DISCOUNT2,	
+		MARKET_PRICE,	
+		MEMBER_GIFTPOINTS,	
+		MEMBER_LEVGIFTPOINTS,	
+		MEMBER_POINTTOPRICE,	
+		ACTIVITY_PRICE,	
+		ACTIVITY_DATE1,	
+		GOODS_THUMBNAIL,	
+		GOODS_DETAILS,	
+		GOODS_WEIGHT,	
+		GOODS_LOW,	
+		GOODS_CUSTOM,	
+		GOODS_FREETRAFFIC,	
+		GOODS_KEYWORDS,	
+		GOODS_INTRODUCTION,	
+		GOODS_ORDER,	
+		ACTIVITY_DATE2,	
+		GOODS_DELFLAG,	
+		GOODS_MODEL,	
+		GOODS_CATEGORY,
+		GOODS_CATEGORY1,
+		GOODS_CATEGORY2,
+		GOODS_CATEGORY3,
+		GOODS_CATEGORY4,
+		GOODS_DETAILSPIC,
+		GOODS_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{GOODS_PIC},	
+		#{GOODS_NAME},	
+		#{GOODS_TITLE},	
+		#{GOODS_PRICE},	
+		#{GOODS_NUM},	
+		#{GOODS_CODE},	
+		#{GOODS_NUMBER},	
+		#{GOODS_FORSALE},	
+		#{GOODS_BEST},	
+		#{GOODS_NEW},	
+		#{GOODS_HOT},	
+		#{GOODS_BRAND},	
+		#{MEMBER_PRICE},	
+		#{GOODS_DISCOUNT1},	
+		#{GOODS_DISCOUNT2},	
+		#{MARKET_PRICE},	
+		#{MEMBER_GIFTPOINTS},	
+		#{MEMBER_LEVGIFTPOINTS},	
+		#{MEMBER_POINTTOPRICE},	
+		#{ACTIVITY_PRICE},	
+		#{ACTIVITY_DATE1},	
+		#{GOODS_THUMBNAIL},	
+		#{GOODS_DETAILS},	
+		#{GOODS_WEIGHT},	
+		#{GOODS_LOW},	
+		#{GOODS_CUSTOM},	
+		#{GOODS_FREETRAFFIC},	
+		#{GOODS_KEYWORDS},	
+		#{GOODS_INTRODUCTION},	
+		#{GOODS_ORDER},	
+		#{ACTIVITY_DATE2},	
+		#{GOODS_DELFLAG},	
+		#{GOODS_MODEL},	
+		#{GOODS_CATEGORY},
+		#{GOODS_CATEGORY1},
+		#{GOODS_CATEGORY2},
+		#{GOODS_CATEGORY3},
+		#{GOODS_CATEGORY4},
+		#{GOODS_DETAILSPIC},
+		#{GOODS_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		GOODS_DELFLAG = 1
+		where
+		GOODS_ID = #{GOODS_ID}
+	</delete>
+
+	<!-- 恢复-->
+	<update id="undelete" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		GOODS_DELFLAG = 0
+		where
+		GOODS_ID = #{GOODS_ID}
+	</update>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			GOODS_PIC = #{GOODS_PIC},
+			GOODS_NAME = #{GOODS_NAME},
+			GOODS_TITLE = #{GOODS_TITLE},
+			GOODS_NUM = #{GOODS_NUM},
+			GOODS_CODE = #{GOODS_CODE},
+			GOODS_NUMBER = #{GOODS_NUMBER},
+			GOODS_FORSALE = #{GOODS_FORSALE},
+			GOODS_BEST = #{GOODS_BEST},
+			GOODS_NEW = #{GOODS_NEW},
+			GOODS_HOT = #{GOODS_HOT},
+			GOODS_BRAND = #{GOODS_BRAND},
+			MEMBER_PRICE = #{MEMBER_PRICE},
+			GOODS_DISCOUNT1 = #{GOODS_DISCOUNT1},
+			GOODS_DISCOUNT2 = #{GOODS_DISCOUNT2},
+			MARKET_PRICE = #{MARKET_PRICE},
+			MEMBER_GIFTPOINTS = #{MEMBER_GIFTPOINTS},
+			MEMBER_LEVGIFTPOINTS = #{MEMBER_LEVGIFTPOINTS},
+			MEMBER_POINTTOPRICE = #{MEMBER_POINTTOPRICE},
+			ACTIVITY_PRICE = #{ACTIVITY_PRICE},
+			ACTIVITY_DATE1 = #{ACTIVITY_DATE1},
+			GOODS_THUMBNAIL = #{GOODS_THUMBNAIL},
+			GOODS_DETAILS = #{GOODS_DETAILS},
+			GOODS_WEIGHT = #{GOODS_WEIGHT},
+			GOODS_LOW = #{GOODS_LOW},
+			GOODS_CUSTOM = #{GOODS_CUSTOM},
+			GOODS_FREETRAFFIC = #{GOODS_FREETRAFFIC},
+			GOODS_KEYWORDS = #{GOODS_KEYWORDS},
+			GOODS_INTRODUCTION = #{GOODS_INTRODUCTION},
+			GOODS_ORDER = #{GOODS_ORDER},
+			ACTIVITY_DATE2 = #{ACTIVITY_DATE2},
+			GOODS_DELFLAG = #{GOODS_DELFLAG},
+			GOODS_MODEL = #{GOODS_MODEL},
+			GOODS_CATEGORY = #{GOODS_CATEGORY},
+			GOODS_DETAILSPIC = #{GOODS_DETAILSPIC},
+		GOODS_ID = GOODS_ID
+		where 
+		GOODS_ID = #{GOODS_ID}
+	</update>
+
+	<!-- 修改 -->
+	<update id="saveCategory" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		GOODS_CATEGORY1 = #{GOODS_CATEGORY1},
+		GOODS_ID = GOODS_ID
+		where
+		GOODS_ID = #{GOODS_ID}
+	</update>
+	<update id="editOther" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		<if test="GOODS_PRICE != null and GOODS_PRICE != ''">
+		   GOODS_PRICE = #{GOODS_PRICE},
+		</if>
+		GOODS_ID = GOODS_ID
+		where
+		GOODS_ID = #{GOODS_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			GOODS_ID = #{GOODS_ID}
+	</select>
+
+	<!-- 通过Goods_ID获取最少价钱的规格 -->
+	<select id="findMinByGoodId" parameterType="pd" resultType="pd">
+		select * from shop_attribute where attributeprice = (select min(attributeprice) from shop_attribute where goods_id = #{GOODS_ID} and ATTRIBUTENUM>0)
+		and goods_id = #{GOODS_ID} LIMIT 1
+	</select>
+
+	<!-- 通过Goods_ID获取最大的排序 -->
+	<select id="findMaxOrder" parameterType="pd" resultType="int">
+		select
+			ifnull(MAX(GOODS_ORDER),0)
+		from
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>,CATEGORY_NAME
+		from
+		<include refid="tableName"></include>
+		left join SHOP_CATEGORY on SHOP_GOODS.GOODS_CATEGORY=SHOP_CATEGORY.CATEGORY_ID
+		where 1=1
+		<!-- 关键词检索 -->
+		<if test="pd.keywords!= null and pd.keywords != ''">
+			and (
+			GOODS_CODE LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+			or
+			GOODS_NAME LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') )
+		</if>
+		<!-- 商品大类检索 -->
+		<if test="pd.SUPER_ID != null and pd.SUPER_ID != ''">
+			and (SHOP_CATEGORY.SUPER_ID = #{pd.SUPER_ID} or SHOP_GOODS.GOODS_CATEGORY1 like CONCAT(CONCAT('%', #{pd.SUPER_ID}),'%') )
+		</if>
+        <!-- 商品小类 -->
+		<if test="pd.GOODS_CATEGORY != null and pd.GOODS_CATEGORY != ''">
+			and (GOODS_CATEGORY = #{pd.GOODS_CATEGORY} or GOODS_CATEGORY1 like CONCAT(CONCAT('%', #{pd.GOODS_CATEGORY}),'%') )
+		</if>
+        <!-- 为你推荐 -->
+        <if test="pd.GOODS_HOT != null and pd.GOODS_HOT != ''">
+            and GOODS_HOT = #{pd.GOODS_HOT}
+        </if>
+        <!-- 已上架 -->
+        <if test="pd.GOODS_FORSALE != null and pd.GOODS_FORSALE != ''">
+            and GOODS_FORSALE = #{pd.GOODS_FORSALE}
+        </if>
+		<!-- 删除标记 -->
+		<if test="pd.delflag == null">
+			and (goods_delflag is null or goods_delflag != 1)
+		</if>
+		<!-- 删除标记 -->
+		<if test="pd.delflag == 1">
+			and goods_delflag = 1
+		</if>
+		<!-- 排序 -->
+		<choose>
+			<when test="pd.ORDERFLAG != null and pd.ORDERFLAG != ''">
+				<choose>
+					<when test="pd.SORTSTRING != null and pd.SORTSTRING != ''">
+						order by ${pd.ORDERFLAG} ${pd.SORTSTRING},GOODS_ID DESC
+					</when>
+					<otherwise>
+						order by ${pd.ORDERFLAG},GOODS_ID DESC
+					</otherwise>
+				</choose>
+			</when>
+			<otherwise>
+				order by GOODS_ORDER DESC,GOODS_ID DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1 = 1
+		<if test="GOODS_IDS != null and GOODS_IDS != ''">
+			and GOODS_ID in (${GOODS_IDS})
+		</if>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			GOODS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- da -->
+</mapper>
